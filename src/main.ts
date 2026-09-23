@@ -7,7 +7,8 @@ import { makeShareCard } from './view/share';
 import { startStars } from './view/stars';
 
 /** Set this to the project's GitHub URL once it's public. */
-const SOURCE_URL = 'https://github.com/drk1rd/depglobe';
+/** Set to the project's GitHub URL to show a ★ Star link (only once the repo is public). */
+const SOURCE_URL = '';
 const BG_DEMO = 'vercel/next.js';
 const TOKEN_KEY = 'depglobe.token';
 
