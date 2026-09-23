@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>depglobe — who actually wrote your code?</title>
+    <meta name="description" content="Paste any GitHub repo. See every human and every country behind its dependencies, on a 3D globe." />
+    <meta name="theme-color" content="#03040b" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="depglobe — who actually wrote your code?" />
+    <meta property="og:description" content="Paste any GitHub repo. See the strangers across the planet your code depends on." />
+    <meta property="og:image" content="https://drk1rd.github.io/depglobe/og.jpg" />
+    <meta property="og:url" content="https://drk1rd.github.io/depglobe/" />
+    <meta name="twitter:image" content="https://drk1rd.github.io/depglobe/og.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;700&family=Unbounded:wght@400;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body data-mode="hero">
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <div id="globe" aria-label="3D globe of dependency maintainers"></div>
+    <div class="vignette" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <a class="brand" href="./" id="home">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="11" /><ellipse cx="16" cy="16" rx="5" ry="11" /><path d="M5 16h22" /></svg>
+        <span>dep<b>globe</b></span>
+      </a>
+      <nav>
+        <button class="ghost" id="token-btn" type="button" title="Optional GitHub token for faster, deeper scans"><span class="tok-dot"></span><span id="token-label">Turbo</span></button>
+        <a class="ghost" href="https://github.com/drk1rd/depglobe" id="gh-link" target="_blank" rel="noopener">★ Star</a>
+      </nav>
+    </header>
+
+    <!-- HERO -->
+    <section id="hero" class="hero">
+      <div class="kicker"><span class="pulse"></span> the open source supply-chain atlas</div>
+      <h1>
+        Who <span class="glitch" data-text="actually">actually</span><br />
+        wrote your code?
+      </h1>
+      <p class="sub">
+        Paste any GitHub repo. We trace every dependency back to the humans who keep it alive, and pin them on the planet.
+      </p>
+      <form id="form" class="omnibox" autocomplete="off">
+        <span class="prefix">github.com/</span>
+        <input id="repo" name="repo" placeholder="vercel/next.js" spellcheck="false" aria-label="GitHub repository" list="repo-list" />
+        <datalist id="repo-list"></datalist>
+        <button type="submit" class="go"><span>Map it</span><i>→</i></button>
+      </form>
+      <div class="demos" id="demos"></div>
+      <p class="fine">
+        <span id="instant-count">Any repo · no token needed</span><br />
+        npm · PyPI · Go · Cargo · Maven · RubyGems · NuGet · Composer · Actions — runs entirely in your browser.
+      </p>
+    </section>
+
+    <div class="ticker" id="ticker" aria-hidden="true"><div class="ticker-track"></div></div>
+
+    <!-- SCAN -->
+    <section id="scan" class="scan" hidden>
+      <div class="scan-top">
+        <div class="scan-label">scanning</div>
+        <div class="scan-repo" id="scan-repo"></div>
+      </div>
+      <div class="bar"><i id="bar"></i></div>
+      <div class="counters">
+        <div><b id="c-pkgs">0</b><span>packages</span></div>
+        <div><b id="c-people">0</b><span>humans</span></div>
+        <div><b id="c-countries">0</b><span>countries</span></div>
+      </div>
+      <pre class="term" id="term"></pre>
+      <p class="anon-note" id="anon-note" hidden>
+        No token needed. <button type="button" class="link" data-open-token>Add one</button> for faster scans of huge repos.
+      </p>
+    </section>
+
+    <!-- RESULT -->
+    <section id="result" class="result" hidden>
+      <div class="headline">
+        <a class="repo-name" id="r-repo" target="_blank" rel="noopener"></a>
+        <h2>
+          is built by <b id="r-people">0</b> humans<br />
+          in <b id="r-countries">0</b> countries
+        </h2>
+        <p class="meta" id="r-meta"></p>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn hot" id="share-btn">⚡ Share</button>
+        <button type="button" class="btn" id="tour-btn">▶ Fly tour</button>
+        <button type="button" class="btn" id="new-btn">＋ New repo</button>
+      </div>
+
+      <aside class="panel" id="panel">
+        <button class="sheet-handle" id="sheet-handle" type="button" aria-label="Expand panel"></button>
+        <div class="tabs" role="tablist">
+          <button role="tab" data-tab="countries" aria-selected="true">Countries</button>
+          <button role="tab" data-tab="risk">Risk</button>
+          <button role="tab" data-tab="packages">Packages</button>
+        </div>
+        <div class="tab-body" id="tab-body"></div>
+      </aside>
+
+      <footer class="strip" id="strip"></footer>
+    </section>
+
+    <div class="tour-caption" id="tour-caption" aria-live="polite"></div>
+    <div class="toast" id="toast" role="status"></div>
+
+    <dialog id="token-dlg" class="dlg">
+      <form method="dialog" class="dlg-body" id="token-form">
+        <h3>⚡ Turbo mode</h3>
+        <p>
+          Totally optional — depglobe works without it. A GitHub token makes scans of huge repos ~3× faster, maps up to 400 packages
+          instead of 200, and uses each repo's last 60 commits for the maintainer checks. No scopes needed —
+          <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">create a fine-grained token</a>
+          with <em>public repositories (read-only)</em>.
+        </p>
+        <input type="password" id="token-input" placeholder="github_pat_…" autocomplete="off" spellcheck="false" />
+        <label class="check"><input type="checkbox" id="token-remember" /> Remember on this device</label>
+        <p class="fine">Stays in your browser. Only ever sent to api.github.com.</p>
+        <div class="dlg-actions">
+          <button type="button" class="btn" id="token-clear">Forget</button>
+          <button type="submit" class="btn hot" value="save">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="share-dlg" class="dlg wide">
+      <div class="dlg-body">
+        <h3>Share the globe</h3>
+        <div class="share-preview"><img id="share-img" alt="Share card preview" /></div>
+        <div class="share-actions">
+          <button type="button" class="btn hot" id="share-x">Post on 𝕏</button>
+          <button type="button" class="btn" id="share-li">LinkedIn</button>
+          <button type="button" class="btn" id="share-dl">Download PNG</button>
+          <button type="button" class="btn" id="share-copy">Copy link</button>
+          <button type="button" class="btn" id="share-native" hidden>Share…</button>
+        </div>
+        <button type="button" class="dlg-x" id="share-close" aria-label="Close">×</button>
+      </div>
+    </dialog>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

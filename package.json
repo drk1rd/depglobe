@@ -1,0 +1,30 @@
+{
+  "name": "depglobe",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "build:places": "tsx scripts/build-places.ts",
+    "build:demos": "tsx scripts/build-demos.ts"
+  },
+  "dependencies": {
+    "globe.gl": "^2.46.2",
+    "three": "^0.186.0",
+    "topojson-client": "^3.1.0",
+    "world-atlas": "^2.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "@types/three": "^0.186.0",
+    "@types/topojson-client": "^3.1.5",
+    "all-the-cities": "^3.1.0",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.0",
+    "world-countries": "^5.1.0"
+  }
+}
