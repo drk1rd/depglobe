@@ -10,7 +10,7 @@ import { avatar, esc, fmt } from './fx';
 type Mode = 'hero' | 'scan' | 'result';
 
 interface PointD { id: string; agg: PlaceAgg; lat: number; lng: number; alt: number; r: number; color: string }
-interface ArcD { id: string; startLat: number; startLng: number; endLat: number; endLng: number; stroke: number; t: number; gap: number }
+interface ArcD { id: string; cc: string; startLat: number; startLng: number; endLat: number; endLng: number; stroke: number; t: number; gap: number }
 interface RingD { lat: number; lng: number; color: string; until: number; speed: number; max: number }
 interface PinD { id: string; lat: number; lng: number; el: HTMLElement }
 
@@ -40,6 +40,7 @@ export class GlobeView {
   model?: Model;
   onPick?: (agg: PlaceAgg) => void;
   private heat = new Map<string, number>();
+  private focusCc?: string;
   private points = new Map<string, PointD>();
   private arcs = new Map<string, ArcD>();
   private rings: RingD[] = [];
@@ -122,10 +123,39 @@ export class GlobeView {
   private hexColor = (f: any): string => {
     const cc = CCN3_TO_CC.get(String(f.id));
     const t = cc ? this.heat.get(cc) : undefined;
+    if (this.focusCc) {
+      if (cc === this.focusCc) return '#ffffff';
+      return t === undefined ? 'rgba(110,130,255,0.12)' : `hsla(${190 + 140 * t}, 100%, ${52 + 16 * t}%, 0.35)`;
+    }
     if (t === undefined) return 'rgba(110,130,255,0.30)';
     const hue = 190 + 140 * t; // cyan → magenta
     return `hsl(${hue}, 100%, ${52 + 16 * t}%)`;
   };
+
+  /** Light one country up (panel hover); pass undefined to clear. */
+  highlightCountry(cc?: string) {
+    if (this.focusCc === cc) return;
+    this.focusCc = cc;
+    this.g.hexPolygonColor((f: any) => this.hexColor(f));
+    this.g.arcColor((d: any) =>
+      !cc || (d as ArcD).cc === cc
+        ? ['rgba(52,245,255,0.05)', 'rgba(52,245,255,0.75)', 'rgba(255,62,165,0.95)']
+        : ['rgba(52,245,255,0.0)', 'rgba(52,245,255,0.08)', 'rgba(255,62,165,0.1)'],
+    );
+  }
+
+  /** Cinematic entrance: drop in from deep space, then settle. */
+  introFly() {
+    const { alt } = this.layoutFor();
+    const pov = this.g.pointOfView();
+    this.g.pointOfView({ lat: 18, lng: pov.lng - 60, altitude: alt * 3.2 }, 0);
+    setTimeout(() => this.g.pointOfView({ lat: 22, lng: pov.lng, altitude: alt }, 2600), 60);
+  }
+
+  /** Arcs grow out of the globe instead of popping in (used for the final result render). */
+  setArcReveal(on: boolean) {
+    this.g.arcsTransitionDuration(on ? 1400 : 0);
+  }
 
   setMode(mode: Mode) {
     this.mode = mode;
@@ -226,6 +256,7 @@ export class GlobeView {
         }
         this.arcs.set(agg.place.id, {
           id: agg.place.id,
+          cc: agg.place.cc,
           startLat: agg.place.lat,
           startLng: agg.place.lng,
           endLat: hq.lat,

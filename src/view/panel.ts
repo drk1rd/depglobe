@@ -1,7 +1,43 @@
 import type { Model, RiskItem } from '../model';
-import { $, countUp, esc, fmt } from './fx';
+import { $, countUp, esc, fmt, toast } from './fx';
+import { buildInsights, type Insight } from './insights';
 
-export type Tab = 'countries' | 'risk' | 'packages';
+export type Tab = 'countries' | 'story' | 'risk' | 'packages';
+
+let factTimer = 0;
+let lastInsights: Insight[] = [];
+
+/** Rotating "did you know" line under the headline meta, cycling the first 3 insights every 5s. */
+function renderFact(m: Model) {
+  clearInterval(factTimer);
+  const meta = $('#r-meta');
+  let el = document.getElementById('r-fact');
+  if (!el) {
+    el = document.createElement('p');
+    el.id = 'r-fact';
+    el.className = 'fact';
+    meta.insertAdjacentElement('afterend', el);
+  }
+  const facts = buildInsights(m).slice(0, 3);
+  if (!facts.length) {
+    el.hidden = true;
+    return;
+  }
+  el.hidden = false;
+  const line = (f: Insight) => `<span class="fact-e">${f.emoji}</span> ${esc(f.title)} — ${esc(f.body)}`;
+  let i = 0;
+  el.innerHTML = line(facts[0]!);
+  requestAnimationFrame(() => el!.classList.add('show'));
+  if (facts.length < 2) return;
+  factTimer = window.setInterval(() => {
+    el!.classList.remove('show');
+    setTimeout(() => {
+      i = (i + 1) % facts.length;
+      el!.innerHTML = line(facts[i]!);
+      el!.classList.add('show');
+    }, 420);
+  }, 5000);
+}
 
 const STACK_COLORS = ['#ff3ea5', '#b04fd6', '#8a5cff', '#5fa8ff', '#34f5ff', '#3a4270'];
 const repoLink = (repo?: string) => (repo ? `https://github.com/${repo}` : '#');

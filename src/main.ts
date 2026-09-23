@@ -70,6 +70,10 @@ else $('#gh-link').hidden = true;
 
 function setMode(mode: Mode) {
   document.body.dataset.mode = mode;
+  if (mode !== 'hero') {
+    clearInterval(showcaseTimer);
+    $('#showcase').classList.remove('show');
+  }
   $('#hero').hidden = mode !== 'hero';
   $('#scan').hidden = mode !== 'scan';
   $('#result').hidden = mode !== 'result';
@@ -111,13 +115,34 @@ async function fetchDemo(d: DemoEntry): Promise<Result> {
   return (await fetch(d.file)).json();
 }
 
+// ---------- hero showcase: cycle through precomputed globes behind the headline ----------
+let showcaseTimer = 0;
+let showcaseIdx = 0;
 async function heroBackdrop() {
-  const d = findDemo(BG_DEMO) ?? state.demos[0];
-  if (!d || state.model) return;
-  try {
-    const r = await fetchDemo(d);
-    if (document.body.dataset.mode === 'hero' && !state.model) globe.render(buildModel(r));
-  } catch {}
+  clearInterval(showcaseTimer);
+  const pool = state.demos.filter((d) => d.featured).length ? state.demos.filter((d) => d.featured) : state.demos.slice(0, 8);
+  if (!pool.length || state.model) return;
+  const first = pool.findIndex((d) => d.repo.toLowerCase() === BG_DEMO.toLowerCase());
+  showcaseIdx = first >= 0 ? first : 0;
+  const show = async () => {
+    const d = pool[showcaseIdx % pool.length];
+    try {
+      const r = await fetchDemo(d);
+      if (document.body.dataset.mode !== 'hero' || state.model) return;
+      globe.setArcReveal(true);
+      globe.render(buildModel(r));
+      const cap = $('#showcase');
+      cap.innerHTML = `<span class="sc-repo">${esc(d.repo)}</span><span class="sc-stat">${d.people.toLocaleString()} humans · ${d.countries} countries ${d.top}</span>`;
+      cap.classList.add('show');
+      cap.onclick = () => go(d.repo);
+    } catch {}
+  };
+  await show();
+  showcaseTimer = window.setInterval(() => {
+    showcaseIdx++;
+    $('#showcase').classList.remove('show');
+    setTimeout(show, 400);
+  }, 9000);
 }
 
 // ---------- routing ----------
@@ -216,6 +241,7 @@ async function run(repo: string, forceLive: boolean) {
     $(s).textContent = '0';
   });
   globe.clear();
+  globe.setArcReveal(false);
   t0 = performance.now();
   const token = store.get();
   $('#anon-note').hidden = true;
@@ -302,6 +328,7 @@ function showResult(result: Result, opts: { fly: boolean }) {
   const m = buildModel(result, state.hqOverride);
   state.model = m;
   if (document.body.dataset.mode !== 'result') setMode('result');
+  globe.setArcReveal(opts.fly);
   globe.render(m);
   globe.setPins(m);
   renderHeadline(m);
@@ -337,6 +364,11 @@ document.querySelectorAll<HTMLButtonElement>('.tabs button').forEach((b) =>
   }),
 );
 $('#sheet-handle').addEventListener('click', () => $('#panel').classList.toggle('open'));
+$('#tab-body').addEventListener('mouseover', (e) => {
+  const row = (e.target as HTMLElement).closest<HTMLElement>('[data-cc]');
+  globe.highlightCountry(row?.dataset.cc);
+});
+$('#tab-body').addEventListener('mouseleave', () => globe.highlightCountry(undefined));
 
 // ---------- tour ----------
 let tourId = 0;
@@ -499,6 +531,7 @@ addEventListener('paste', (e) => {
 });
 
 await loadDemos();
+if (!new URLSearchParams(location.search).get('repo')) globe.introFly();
 route();
 
 if (import.meta.env.DEV) Object.assign(window, { __depglobe: { state, globe } });
