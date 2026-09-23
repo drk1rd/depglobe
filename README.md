@@ -4,7 +4,7 @@
 
 A spinning 3D globe of every human and org behind a repo's dependencies — any language — with a risk layer for companies and share exports built to be posted.
 
-**Live: https://drk1rd.github.io/depglobe/** · no token needed · ~450 popular repos load instantly
+**Live: https://depglobe.pages.dev/** · no token needed · 360+ popular repos load instantly
 
 ![depglobe](public/og.jpg)
 
@@ -68,7 +68,7 @@ Flags describe **packages, never people**. Location is self-reported free text, 
 
 ## Deploy
 
-Pushing to `main` builds and deploys to GitHub Pages via `.github/workflows/deploy.yml` (enable *Settings → Pages → Source: GitHub Actions* once). The build uses relative paths, so it also works on Cloudflare Pages or any static host.
+Static build, relative paths, no backend. On **Cloudflare Pages**: connect the repo, build command `npm run build`, output directory `dist`, Node 22. Then set the absolute `og:image` / `og:url` / `twitter:image` URLs in `index.html` to your domain (link previews need absolute URLs).
 
 ## Data & credits
 

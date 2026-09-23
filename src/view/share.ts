@@ -11,13 +11,13 @@ export const CARD_SIZE: Record<CardFormat, { w: number; h: number }> = {
 };
 
 // palette (strict)
-const BG = '#03040b';
-const INK = '#eef3ff';
-const MUTED = '#8b93b8';
-const DIM = '#545b80';
-const CYAN = '#34f5ff';
-const VIOLET = '#8a5cff';
-const PINK = '#ff3ea5';
+const BG = '#050505';
+const INK = '#f4f1ea';
+const MUTED = '#9a958b';
+const DIM = '#5c5952';
+const CYAN = '#ff4d00';
+const VIOLET = '#ff4d00';
+const PINK = '#ff4d00';
 const EMOJI = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
 
 /** Where the globe pixels come from: a square crop centred at (cx, cy) with radius r, in source pixels. */
@@ -28,9 +28,9 @@ export interface CardAnim { number: number; flags: number[] }
 
 export async function loadCardFonts() {
   await Promise.all([
-    document.fonts.load('900 120px Unbounded'),
-    document.fonts.load('400 30px Unbounded'),
-    document.fonts.load('500 30px "Space Grotesk"'),
+    document.fonts.load('400 120px Anton'),
+    document.fonts.load('400 30px Anton'),
+    document.fonts.load('500 30px "Archivo"'),
     document.fonts.load('600 24px "JetBrains Mono"'),
   ]).catch(() => {});
 }
@@ -60,22 +60,22 @@ export function paintBackdrop(x: Ctx, format: CardFormat) {
     x.fillRect(0, 0, W, H);
   };
   if (format === 'wide') {
-    glow(900, 315, 460, 'rgba(138,92,255,0.35)');
-    glow(120, 620, 420, 'rgba(52,245,255,0.14)');
-    glow(1150, 40, 300, 'rgba(255,62,165,0.18)');
+    glow(900, 315, 460, 'rgba(255,77,0,0.10)');
+    glow(120, 620, 420, 'rgba(244,241,234,0.04)');
+    glow(1150, 40, 300, 'rgba(255,77,0,0.06)');
   } else if (format === 'square') {
-    glow(540, 330, 520, 'rgba(138,92,255,0.34)');
-    glow(80, 1060, 460, 'rgba(52,245,255,0.14)');
-    glow(1040, 60, 380, 'rgba(255,62,165,0.18)');
+    glow(540, 330, 520, 'rgba(255,77,0,0.10)');
+    glow(80, 1060, 460, 'rgba(244,241,234,0.04)');
+    glow(1040, 60, 380, 'rgba(255,77,0,0.06)');
   } else {
-    glow(540, 830, 760, 'rgba(138,92,255,0.34)');
-    glow(60, 1900, 620, 'rgba(52,245,255,0.14)');
-    glow(1040, 120, 520, 'rgba(255,62,165,0.18)');
+    glow(540, 830, 760, 'rgba(255,77,0,0.10)');
+    glow(60, 1900, 620, 'rgba(244,241,234,0.04)');
+    glow(1040, 120, 520, 'rgba(255,77,0,0.06)');
   }
   const rand = rng(format === 'wide' ? 7 : format === 'square' ? 11 : 13);
   const n = Math.round((W * H) / 3400);
   for (let i = 0; i < n; i++) {
-    x.fillStyle = `rgba(220,230,255,${rand() * 0.7})`;
+    x.fillStyle = `rgba(244,241,234,${rand() * 0.7})`;
     x.beginPath();
     x.arc(rand() * W, rand() * H, rand() * 1.2 * (format === 'wide' ? 1 : 1.3), 0, Math.PI * 2);
     x.fill();
@@ -85,8 +85,8 @@ export function paintBackdrop(x: Ctx, format: CardFormat) {
 function paintGlobe(x: Ctx, g: GlobeSrc, GX: number, GY: number, GR: number) {
   // soft halo behind the disc
   const halo = x.createRadialGradient(GX, GY, GR * 0.6, GX, GY, GR * 1.35);
-  halo.addColorStop(0, 'rgba(138,92,255,0.22)');
-  halo.addColorStop(1, 'rgba(138,92,255,0)');
+  halo.addColorStop(0, 'rgba(255,77,0,0.10)');
+  halo.addColorStop(1, 'rgba(255,77,0,0)');
   x.fillStyle = halo;
   x.beginPath();
   x.arc(GX, GY, GR * 1.35, 0, Math.PI * 2);
@@ -102,9 +102,9 @@ function paintGlobe(x: Ctx, g: GlobeSrc, GX: number, GY: number, GR: number) {
 
   // rim glow
   const rim = x.createRadialGradient(GX, GY, GR * 0.92, GX, GY, GR * 1.12);
-  rim.addColorStop(0, 'rgba(77,107,255,0)');
-  rim.addColorStop(0.5, 'rgba(77,107,255,0.35)');
-  rim.addColorStop(1, 'rgba(77,107,255,0)');
+  rim.addColorStop(0, 'rgba(154,149,139,0)');
+  rim.addColorStop(0.5, 'rgba(154,149,139,0.3)');
+  rim.addColorStop(1, 'rgba(154,149,139,0)');
   x.fillStyle = rim;
   x.beginPath();
   x.arc(GX, GY, GR * 1.12, 0, Math.PI * 2);
@@ -129,16 +129,16 @@ function fit(x: Ctx, text: string, font: (px: number) => string, px: number, max
 
 /** "dep" (light) + "globe" (gradient). Returns total width. */
 function paintBrand(x: Ctx, left: number, y: number, size: number, align: 'left' | 'center' = 'left') {
-  x.font = `400 ${size}px Unbounded`;
+  x.font = `400 ${size}px Anton`;
   const dw = x.measureText('dep').width;
-  x.font = `900 ${size}px Unbounded`;
+  x.font = `400 ${size}px Anton`;
   const gw = x.measureText('globe').width;
   const L = align === 'center' ? left - (dw + gw) / 2 : left;
   x.textAlign = 'left';
-  x.font = `400 ${size}px Unbounded`;
+  x.font = `400 ${size}px Anton`;
   x.fillStyle = INK;
   x.fillText('dep', L, y);
-  x.font = `900 ${size}px Unbounded`;
+  x.font = `400 ${size}px Anton`;
   x.fillStyle = brandGrad(x, L + dw, L + dw + gw);
   x.fillText('globe', L + dw, y);
   return dw + gw;
@@ -149,20 +149,20 @@ function paintCountriesLine(x: Ctx, m: Model, cx: number, y: number, size: numbe
   const pre = 'humans in ';
   const cn = `${m.stats.countries}`;
   const post = ' countries';
-  x.font = `400 ${size}px Unbounded`;
+  x.font = `400 ${size}px Anton`;
   const pw = x.measureText(pre).width;
   const ow = x.measureText(post).width;
-  x.font = `900 ${size}px Unbounded`;
+  x.font = `400 ${size}px Anton`;
   const cw = x.measureText(cn).width;
   const L = align === 'center' ? cx - (pw + cw + ow) / 2 : cx;
   x.textAlign = 'left';
-  x.font = `400 ${size}px Unbounded`;
+  x.font = `400 ${size}px Anton`;
   x.fillStyle = INK;
   x.fillText(pre, L, y);
-  x.font = `900 ${size}px Unbounded`;
+  x.font = `400 ${size}px Anton`;
   x.fillStyle = PINK;
   x.fillText(cn, L + pw, y);
-  x.font = `400 ${size}px Unbounded`;
+  x.font = `400 ${size}px Anton`;
   x.fillStyle = INK;
   x.fillText(post, L + pw + cw, y);
 }
@@ -249,11 +249,11 @@ export function paintCard(
     x.fillStyle = CYAN;
     x.fillText(repo, L, 168);
 
-    x.font = '500 28px "Space Grotesk"';
+    x.font = '500 28px "Archivo"';
     x.fillStyle = MUTED;
     x.fillText('is built by', L, 214);
 
-    const px = fit(x, people, (p) => `900 ${p}px Unbounded`, 132, 520);
+    const px = fit(x, people, (p) => `400 ${p}px Anton`, 132, 520);
     const ny = 214 + px * 0.95;
     x.fillStyle = numGrad(L, x.measureText(people).width);
     x.fillText(people, L, ny);
@@ -275,7 +275,7 @@ export function paintCard(
     x.fillStyle = CYAN;
     x.fillText(repo, C, 668);
 
-    const px = fit(x, people, (p) => `900 ${p}px Unbounded`, 136, 940);
+    const px = fit(x, people, (p) => `400 ${p}px Anton`, 136, 940);
     const nw = x.measureText(people).width;
     const ny = 680 + px * 0.95;
     x.textAlign = 'center';
@@ -299,7 +299,7 @@ export function paintCard(
   x.fillStyle = CYAN;
   x.fillText(repo, C, 334);
 
-  const px = fit(x, people, (p) => `900 ${p}px Unbounded`, 176, 960);
+  const px = fit(x, people, (p) => `400 ${p}px Anton`, 176, 960);
   const nw = x.measureText(people).width;
   const ny = 1300 + px * 0.95;
   x.textAlign = 'center';

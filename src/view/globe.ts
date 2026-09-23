@@ -25,7 +25,7 @@ const COUNTRY_FEATURES = ((feature(topo as any, (topo as any).objects.countries)
   );
 
 // cyan → violet → pink by importance, matching the brand gradient
-const PILLAR = [[52, 245, 255], [138, 92, 255], [255, 62, 165]];
+const PILLAR = [[122, 58, 20], [255, 77, 0], [255, 241, 234]];
 export function pillarColor(k: number): string {
   const t = Math.max(0, Math.min(1, k)) * 2;
   const i = Math.min(1, Math.floor(t));
@@ -33,6 +33,8 @@ export function pillarColor(k: number): string {
   const c = PILLAR[i].map((v, j) => Math.round(v + (PILLAR[i + 1][j] - v) * f));
   return `rgb(${c[0]},${c[1]},${c[2]})`;
 }
+
+const ARC_ON = ['rgba(255,77,0,0.05)', 'rgba(255,77,0,0.8)', 'rgba(255,241,234,0.95)'];
 
 export class GlobeView {
   g: GlobeInstance;
@@ -53,10 +55,10 @@ export class GlobeView {
       .width(innerWidth)
       .height(innerHeight)
       .backgroundColor('rgba(0,0,0,0)')
-      .globeMaterial(new MeshPhongMaterial({ color: '#0a1033', emissive: '#050a26', emissiveIntensity: 0.9, shininess: 6 }))
+      .globeMaterial(new MeshPhongMaterial({ color: '#0b0b0b', emissive: '#060606', emissiveIntensity: 1, shininess: 4 }))
       .showAtmosphere(true)
-      .atmosphereColor('#4d6bff')
-      .atmosphereAltitude(0.24)
+      .atmosphereColor('#9a958b')
+      .atmosphereAltitude(0.14)
       // countries as glowing dot-hexes, lit by how much of the supply chain lives there
       .hexPolygonsData(COUNTRY_FEATURES)
       .hexPolygonResolution(3)
@@ -81,7 +83,7 @@ export class GlobeView {
       })
       // arcs to HQ
       .arcsData([])
-      .arcColor(() => ['rgba(52,245,255,0.05)', 'rgba(52,245,255,0.75)', 'rgba(255,62,165,0.95)'])
+      .arcColor(() => ARC_ON)
       .arcStroke('stroke')
       .arcDashLength(0.42)
       .arcDashGap('gap')
@@ -129,11 +131,11 @@ export class GlobeView {
     const t = cc ? this.heat.get(cc) : undefined;
     if (this.focusCc) {
       if (cc === this.focusCc) return '#ffffff';
-      return t === undefined ? 'rgba(110,130,255,0.12)' : `hsla(${190 + 140 * t}, 100%, ${52 + 16 * t}%, 0.35)`;
+      return t === undefined ? 'rgba(244,241,234,0.06)' : `hsla(18, 100%, ${38 + 22 * t}%, 0.3)`;
     }
-    if (t === undefined) return 'rgba(110,130,255,0.30)';
-    const hue = 190 + 140 * t; // cyan → magenta
-    return `hsl(${hue}, 100%, ${52 + 16 * t}%)`;
+    if (t === undefined) return 'rgba(244,241,234,0.16)';
+    // dim ember → international orange → hot white
+    return t > 0.85 ? '#fff1ea' : `hsl(18, 100%, ${34 + 26 * t}%)`;
   };
 
   /** Light one country up (panel hover); pass undefined to clear. */
@@ -143,8 +145,8 @@ export class GlobeView {
     this.g.hexPolygonColor((f: any) => this.hexColor(f));
     this.g.arcColor((d: any) =>
       !cc || (d as ArcD).cc === cc
-        ? ['rgba(52,245,255,0.05)', 'rgba(52,245,255,0.75)', 'rgba(255,62,165,0.95)']
-        : ['rgba(52,245,255,0.0)', 'rgba(52,245,255,0.08)', 'rgba(255,62,165,0.1)'],
+        ? ARC_ON
+        : ['rgba(255,77,0,0)', 'rgba(255,77,0,0.07)', 'rgba(255,241,234,0.08)'],
     );
   }
 
@@ -237,7 +239,7 @@ export class GlobeView {
       d.r = 0.28 + 0.55 * k;
       d.color = pillarColor(k);
       seen.add(d.id);
-      if (isNew && opts.ping) this.ping(d.lat, d.lng, 'rgba(52,245,255,$)', 2.2);
+      if (isNew && opts.ping) this.ping(d.lat, d.lng, 'rgba(255,77,0,$)', 2.2);
     }
     for (const id of this.points.keys()) if (!seen.has(id)) this.points.delete(id);
     this.g.pointsData([...this.points.values()]);
@@ -278,7 +280,7 @@ export class GlobeView {
 
   private setHqRing(hq?: Place) {
     this.rings = this.rings.filter((r) => r.until !== Infinity);
-    if (hq) this.rings.push({ lat: hq.lat, lng: hq.lng, color: 'rgba(255,62,165,$)', until: Infinity, speed: 2.5, max: 7 });
+    if (hq) this.rings.push({ lat: hq.lat, lng: hq.lng, color: 'rgba(255,241,234,$)', until: Infinity, speed: 2.5, max: 7 });
     this.g.ringsData([...this.rings]);
   }
 

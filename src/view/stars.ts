@@ -20,7 +20,7 @@ export function startStars(canvas: HTMLCanvasElement) {
       y: Math.random() * h,
       z: Math.random() ** 2,
       p: Math.random() * Math.PI * 2,
-      hue: Math.random() < 0.15 ? (Math.random() < 0.5 ? 190 : 320) : 230,
+      hue: 40,
     }));
   };
   resize();
@@ -39,7 +39,7 @@ export function startStars(canvas: HTMLCanvasElement) {
       const r = (0.4 + s.z * 1.3) * dpr;
       const x = s.x - mx * s.z * 14 * dpr;
       const y = s.y - my * s.z * 14 * dpr;
-      ctx.fillStyle = `hsla(${s.hue}, 100%, ${s.hue === 230 ? 92 : 75}%, ${a})`;
+      ctx.fillStyle = `hsla(${s.hue}, 20%, 92%, ${a})`;
       ctx.beginPath();
       ctx.arc(x, y, r, 0, Math.PI * 2);
       ctx.fill();
@@ -50,7 +50,7 @@ export function startStars(canvas: HTMLCanvasElement) {
     if (shoot) {
       const g = ctx.createLinearGradient(shoot.x, shoot.y, shoot.x - shoot.vx * 12, shoot.y - shoot.vy * 12);
       g.addColorStop(0, `rgba(255,255,255,${shoot.life})`);
-      g.addColorStop(1, 'rgba(52,245,255,0)');
+      g.addColorStop(1, 'rgba(255,255,255,0)');
       ctx.strokeStyle = g;
       ctx.lineWidth = 1.5 * dpr;
       ctx.beginPath();

@@ -39,7 +39,7 @@ function renderFact(m: Model) {
   }, 5000);
 }
 
-const STACK_COLORS = ['#ff3ea5', '#b04fd6', '#8a5cff', '#5fa8ff', '#34f5ff', '#3a4270'];
+const STACK_COLORS = ['#ff4d00', '#ff8a4d', '#f4f1ea', '#9a958b', '#5c5952', '#262626'];
 const repoLink = (repo?: string) => (repo ? `https://github.com/${repo}` : '#');
 
 export interface PanelHooks {
