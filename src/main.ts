@@ -436,8 +436,28 @@ async function tour() {
 $('#tour-btn').addEventListener('click', () => void tour());
 
 // ---------- share ----------
+type CardFormat = NonNullable<Parameters<typeof makeShareCard>[3]>;
+type ShareFmt = CardFormat | 'reel';
+type ReelExt = 'mp4' | 'webm';
+const REEL_SECONDS = 8;
+const FMT_HINT: Record<ShareFmt, string> = {
+  wide: '1200 × 630 · 𝕏, LinkedIn, Slack link previews',
+  square: '1080 × 1080 · Instagram feed',
+  story: '1080 × 1920 · Instagram / TikTok stories',
+  reel: `1080 × 1920 · ${REEL_SECONDS}s video of the globe spinning`,
+};
 const shareDlg = $<HTMLDialogElement>('#share-dlg');
-let shareBlob: Blob | undefined;
+const shareImg = $<HTMLImageElement>('#share-img');
+const shareVideo = $<HTMLVideoElement>('#share-video');
+const sharePreview = $('#share-preview');
+let shareFmt: ShareFmt = 'wide';
+let shareBlob: Blob | undefined; // whatever the current tab is showing (png or video)
+let shareExt: 'png' | ReelExt = 'png';
+let recording = false;
+// cards are rendered lazily per format and cached per model (a new result — or a moved HQ — rebuilds the model)
+const cardCache = new WeakMap<Model, Map<CardFormat, Promise<{ blob: Blob; url: string }>>>();
+let reelOut: { model: Model; blob: Blob; ext: ReelExt; url: string } | undefined;
+
 const siteUrl = () => `${location.origin}${location.pathname}`;
 const shareLink = () => (state.result ? `${siteUrl()}?repo=${state.result.repo}` : siteUrl());
 const shareText = () => {
@@ -448,18 +468,123 @@ const shareText = () => {
     .join('')}\n\nWho wrote YOUR code?`;
 };
 
-$('#share-btn').addEventListener('click', async () => {
+function card(f: CardFormat) {
+  const m = state.model!;
+  let per = cardCache.get(m);
+  if (!per) cardCache.set(m, (per = new Map()));
+  let p = per.get(f);
+  if (!p) {
+    p = makeShareCard(m, globe, siteUrl(), f).then((blob) => ({ blob, url: URL.createObjectURL(blob) }));
+    p.catch(() => per!.delete(f));
+    per.set(f, p);
+  }
+  return p;
+}
+
+const shareFileName = () => `depglobe-${(state.result?.repo ?? 'globe').replace('/', '-')}-${shareFmt}.${shareExt}`;
+const shareFile = () =>
+  shareBlob ? new File([shareBlob], shareFileName(), { type: shareBlob.type || (shareExt === 'png' ? 'image/png' : `video/${shareExt}`) }) : undefined;
+
+function syncShareActions() {
+  const f = shareFile();
+  $<HTMLButtonElement>('#share-dl').disabled = !f;
+  $('#share-dl').textContent = shareFmt === 'reel' ? `Download ${shareExt === 'png' ? 'video' : shareExt.toUpperCase()}` : 'Download PNG';
+  $('#share-native').hidden = !(f && navigator.canShare?.({ files: [f] }));
+}
+
+async function showFormat(f: ShareFmt) {
+  shareFmt = f;
+  document.querySelectorAll<HTMLButtonElement>('.share-tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.fmt === f)));
+  sharePreview.className = `share-preview fmt-${f === 'reel' ? 'story' : f}${recording ? ' recording' : ''}`;
+  $('#share-hint').textContent = FMT_HINT[f];
+  $('#reel-ctl').hidden = f !== 'reel';
+  shareVideo.hidden = f !== 'reel';
+  shareImg.hidden = f === 'reel';
+  shareBlob = undefined;
+
+  if (f === 'reel') {
+    const have = reelOut && reelOut.model === state.model ? reelOut : undefined;
+    if (have) {
+      shareBlob = have.blob;
+      shareExt = have.ext;
+      if (shareVideo.src !== have.url) shareVideo.src = have.url;
+    } else if (shareVideo.hasAttribute('src')) {
+      shareVideo.removeAttribute('src');
+      shareVideo.load();
+    }
+    syncShareActions();
+    // the story card doubles as the poster until a reel exists
+    void card('story').then(({ url }) => (shareVideo.poster = url)).catch(() => {});
+    return;
+  }
+
+  shareExt = 'png';
+  syncShareActions();
+  shareImg.removeAttribute('src');
+  sharePreview.classList.add('loading');
+  try {
+    const { blob, url } = await card(f);
+    if (shareFmt !== f) return;
+    shareBlob = blob;
+    shareImg.src = url;
+  } catch (e) {
+    if (shareFmt === f) toast((e as Error).message || 'Could not render the card.', 'err');
+  } finally {
+    if (shareFmt === f) sharePreview.classList.remove('loading');
+  }
+  syncShareActions();
+}
+
+$('#share-btn').addEventListener('click', () => {
   if (!state.model) return;
   shareDlg.showModal();
-  const img = $<HTMLImageElement>('#share-img');
-  img.removeAttribute('src');
-  shareBlob = await makeShareCard(state.model, globe, siteUrl());
-  img.src = URL.createObjectURL(shareBlob);
-  const file = new File([shareBlob], 'depglobe.png', { type: 'image/png' });
-  $('#share-native').hidden = !(navigator.canShare && navigator.canShare({ files: [file] }));
+  void showFormat(shareFmt);
 });
+document.querySelectorAll<HTMLButtonElement>('.share-tabs button').forEach((b) => b.addEventListener('click', () => void showFormat(b.dataset.fmt as ShareFmt)));
+
+$('#reel-record').addEventListener('click', async () => {
+  if (!state.model || recording) return;
+  const m = state.model;
+  const btn = $<HTMLButtonElement>('#reel-record');
+  const bar = $('#reel-bar');
+  recording = true;
+  btn.disabled = true;
+  bar.style.width = '0%';
+  sharePreview.classList.add('recording');
+  try {
+    const { recordReel } = await import('./view/reel');
+    const out = await recordReel(m, globe, siteUrl(), {
+      seconds: REEL_SECONDS,
+      onProgress: (k) => {
+        bar.style.width = `${Math.round(k * 100)}%`;
+        btn.textContent = `● Recording… ${Math.ceil(REEL_SECONDS * (1 - k))}s`;
+      },
+    });
+    if (reelOut) URL.revokeObjectURL(reelOut.url);
+    reelOut = { model: m, blob: out.blob, ext: out.ext, url: URL.createObjectURL(out.blob) };
+    if (shareFmt === 'reel' && state.model === m) {
+      shareVideo.src = reelOut.url;
+      shareBlob = out.blob;
+      shareExt = out.ext;
+      syncShareActions();
+      void shareVideo.play().catch(() => {});
+    }
+    toast(`Reel ready · ${out.ext.toUpperCase()} ✓`);
+  } catch (e) {
+    console.error(e);
+    toast((e as Error).message || 'Recording failed.', 'err', 7000);
+  } finally {
+    recording = false;
+    btn.disabled = false;
+    btn.textContent = `● Record ${REEL_SECONDS}s`;
+    bar.style.width = '0%';
+    sharePreview.classList.remove('recording');
+  }
+});
+
 $('#share-close').addEventListener('click', () => shareDlg.close());
 shareDlg.addEventListener('click', (e) => e.target === shareDlg && shareDlg.close());
+shareDlg.addEventListener('close', () => shareVideo.pause());
 $('#share-x').addEventListener('click', () =>
   window.open(`https://x.com/intent/post?text=${encodeURIComponent(shareText())}&url=${encodeURIComponent(shareLink())}`, '_blank', 'noopener'),
 );
@@ -467,11 +592,12 @@ $('#share-li').addEventListener('click', () =>
   window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareLink())}`, '_blank', 'noopener'),
 );
 $('#share-dl').addEventListener('click', () => {
-  if (!shareBlob || !state.result) return;
+  if (!shareBlob) return;
   const a = document.createElement('a');
   a.href = URL.createObjectURL(shareBlob);
-  a.download = `depglobe-${state.result.repo.replace('/', '-')}.png`;
+  a.download = shareFileName();
   a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 60_000);
 });
 $('#share-copy').addEventListener('click', async () => {
   try {
@@ -482,9 +608,10 @@ $('#share-copy').addEventListener('click', async () => {
   }
 });
 $('#share-native').addEventListener('click', async () => {
-  if (!shareBlob) return;
+  const f = shareFile();
+  if (!f) return;
   try {
-    await navigator.share({ files: [new File([shareBlob], 'depglobe.png', { type: 'image/png' })], text: shareText(), url: shareLink() });
+    await navigator.share({ files: [f], text: shareText(), url: shareLink() });
   } catch {}
 });
 

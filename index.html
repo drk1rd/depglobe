@@ -140,7 +140,21 @@
     <dialog id="share-dlg" class="dlg wide">
       <div class="dlg-body">
         <h3>Share the globe</h3>
-        <div class="share-preview"><img id="share-img" alt="Share card preview" /></div>
+        <div class="share-tabs" role="tablist" aria-label="Format">
+          <button type="button" role="tab" data-fmt="wide" aria-selected="true">Wide</button>
+          <button type="button" role="tab" data-fmt="square" aria-selected="false">Square</button>
+          <button type="button" role="tab" data-fmt="story" aria-selected="false">Story</button>
+          <button type="button" role="tab" data-fmt="reel" aria-selected="false">🎬 Reel</button>
+        </div>
+        <div class="share-preview fmt-wide" id="share-preview">
+          <img id="share-img" alt="Share card preview" />
+          <video id="share-video" controls muted playsinline loop hidden></video>
+        </div>
+        <div class="reel-ctl" id="reel-ctl" hidden>
+          <button type="button" class="btn hot" id="reel-record">● Record 8s</button>
+          <div class="reel-progress" aria-hidden="true"><i id="reel-bar"></i></div>
+        </div>
+        <p class="share-hint" id="share-hint">1200 × 630 · 𝕏, LinkedIn, Slack link previews</p>
         <div class="share-actions">
           <button type="button" class="btn hot" id="share-x">Post on 𝕏</button>
           <button type="button" class="btn" id="share-li">LinkedIn</button>

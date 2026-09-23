@@ -387,7 +387,7 @@ body.touring .headline, body.touring .panel, body.touring .strip { opacity: 0.15
 
 /* poster mode: only the globe + a signature */
 body.poster .headline, body.poster .panel, body.poster .strip, body.poster .actions, body.poster .topbar nav,
-body.poster .tour-caption { opacity: 0 !important; pointer-events: none !important; transition: opacity 0.4s; }
+body.poster .tour-caption { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
 body.poster .brand { opacity: 0.9; }
 .poster-exit {
   position: fixed; z-index: 40; right: 20px; bottom: 20px; opacity: 0; pointer-events: none;
@@ -507,3 +507,42 @@ body.poster .poster-exit:hover { opacity: 1; color: var(--ink); }
   .fact { display: none; }
   .icard-big { font-size: 26px; }
 }
+
+/* ---------- share & reel (agent) ---------- */
+.recording .headline, .recording .panel, .recording .strip, .recording .actions, .recording .topbar { opacity: 0 !important; pointer-events: none; }
+
+.share-tabs {
+  display: flex; gap: 4px; padding: 4px; margin: 0 0 12px;
+  border: 1px solid var(--line); border-radius: 12px; background: rgba(255, 255, 255, 0.03);
+}
+.share-tabs button {
+  flex: 1; background: none; border: 0; padding: 8px 6px; border-radius: 9px;
+  font-size: 13px; font-weight: 500; color: var(--muted); white-space: nowrap; transition: all 0.15s;
+}
+.share-tabs button:hover { color: var(--ink); }
+.share-tabs button[aria-selected='true'] { background: rgba(255, 255, 255, 0.07); color: var(--ink); box-shadow: inset 0 -2px 0 var(--pink); }
+
+.share-preview { position: relative; margin-inline: auto; }
+.share-preview.fmt-wide { aspect-ratio: 1200 / 630; width: 100%; height: auto; }
+.share-preview.fmt-square { aspect-ratio: 1 / 1; width: auto; height: min(56vh, 520px); }
+.share-preview.fmt-story { aspect-ratio: 9 / 16; width: auto; height: min(60vh, 640px); }
+.share-preview img, .share-preview video { width: 100%; height: 100%; display: block; object-fit: contain; background: #05060f; }
+.share-preview img:not([src]) { visibility: hidden; }
+.share-preview::after {
+  content: 'rendering…'; position: absolute; inset: 0; display: grid; place-items: center;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--dim);
+  background: linear-gradient(110deg, transparent 30%, rgba(138, 92, 255, 0.08) 50%, transparent 70%) 0 0 / 200% 100%;
+  animation: shimmer 1.4s linear infinite; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.share-preview.loading::after { opacity: 1; }
+.share-preview.recording::after { content: 'recording…'; opacity: 1; color: var(--pink); }
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+.reel-ctl { display: flex; align-items: center; gap: 14px; margin-top: 12px; }
+.reel-ctl .btn { flex: 0 0 auto; }
+.reel-progress { flex: 1; height: 3px; border-radius: 3px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.reel-progress i { display: block; height: 100%; width: 0; background: var(--grad); box-shadow: 0 0 12px var(--pink); transition: width 0.2s linear; }
+
+.share-hint { font-family: var(--mono); font-size: 11.5px; color: var(--dim); margin: 10px 0 0; text-align: center; }
+.share-actions { justify-content: center; }
+.btn:disabled { opacity: 0.4; cursor: default; transform: none !important; }
