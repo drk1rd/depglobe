@@ -305,6 +305,7 @@ body:not([data-mode='hero']) .ticker { transform: translateY(100%); }
 .crow .bar2 { grid-column: 3 / 5; height: 3px; border-radius: 3px; background: rgba(255, 255, 255, 0.06); overflow: hidden; }
 .crow .bar2 i { display: block; height: 100%; background: linear-gradient(90deg, var(--cyan), var(--pink)); border-radius: 3px; transform-origin: left; animation: grow 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 @keyframes grow { from { transform: scaleX(0); } }
+.crow.lit { background: rgba(255, 62, 165, 0.14); box-shadow: inset 2px 0 0 var(--pink); }
 .unknown-row { opacity: 0.7; cursor: default; }
 
 .card { border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 10px; background: rgba(255, 255, 255, 0.02); }
@@ -384,6 +385,17 @@ body:not([data-mode='hero']) .ticker { transform: translateY(100%); }
 .tour-caption .tc-sub { font-family: var(--mono); font-size: 14px; color: var(--cyan); text-shadow: 0 2px 10px #000; }
 body.touring .headline, body.touring .panel, body.touring .strip { opacity: 0.15; transition: opacity 0.5s; }
 
+/* poster mode: only the globe + a signature */
+body.poster .headline, body.poster .panel, body.poster .strip, body.poster .actions, body.poster .topbar nav,
+body.poster .tour-caption { opacity: 0 !important; pointer-events: none !important; transition: opacity 0.4s; }
+body.poster .brand { opacity: 0.9; }
+.poster-exit {
+  position: fixed; z-index: 40; right: 20px; bottom: 20px; opacity: 0; pointer-events: none;
+  background: var(--glass); border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px;
+  font-family: var(--mono); font-size: 12px; color: var(--muted); backdrop-filter: blur(10px); transition: opacity 0.3s;
+}
+body.poster .poster-exit { opacity: 0.6; pointer-events: auto; }
+body.poster .poster-exit:hover { opacity: 1; color: var(--ink); }
 .toast {
   position: fixed; z-index: 50; left: 50%; top: 20px; transform: translate(-50%, -140%);
   background: rgba(10, 12, 30, 0.95); border: 1px solid var(--line); border-radius: 12px; padding: 12px 18px;
@@ -446,4 +458,52 @@ body.touring .headline, body.touring .panel, body.touring .strip { opacity: 0.15
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001s !important; animation-iteration-count: 1 !important; }
+}
+
+/* ---------- story tab (agent) ---------- */
+.fact {
+  font-family: var(--mono); font-size: 12px; color: var(--muted); margin: 8px 0 0;
+  max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  opacity: 0; transform: translateY(3px); transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.fact.show { opacity: 1; transform: none; }
+.fact .fact-e { margin-right: 2px; }
+
+.story { display: flex; flex-direction: column; gap: 10px; }
+.icard {
+  position: relative; border: 1px solid var(--line); border-radius: 14px; padding: 14px 14px 12px;
+  background: rgba(255, 255, 255, 0.02); overflow: hidden;
+  animation: icard-in 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
+  transition: border-color 0.2s, background 0.2s;
+}
+@keyframes icard-in { from { opacity: 0; transform: translateY(14px) scale(0.98); filter: blur(4px); } }
+.icard::before {
+  content: ''; position: absolute; inset: -40% -20% auto auto; width: 60%; aspect-ratio: 1; border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(138, 92, 255, 0.18), transparent); pointer-events: none;
+}
+.icard.k-geo::before { background: radial-gradient(closest-side, rgba(52, 245, 255, 0.16), transparent); }
+.icard.k-risk::before { background: radial-gradient(closest-side, rgba(255, 62, 165, 0.16), transparent); }
+.icard:hover { border-color: rgba(138, 92, 255, 0.45); background: rgba(255, 255, 255, 0.035); }
+.icard-top { display: flex; align-items: center; justify-content: space-between; }
+.icard-e { font-size: 26px; line-height: 1; filter: drop-shadow(0 0 10px rgba(52, 245, 255, 0.25)); }
+.icard-acts { display: flex; gap: 4px; opacity: 0.55; transition: opacity 0.2s; }
+.icard:hover .icard-acts, .icard:focus-within .icard-acts { opacity: 1; }
+.icard-btn {
+  border: 1px solid var(--line); background: rgba(255, 255, 255, 0.04); color: var(--muted); border-radius: 8px;
+  padding: 4px 8px; font-size: 11px; font-family: var(--mono); line-height: 1.2; transition: all 0.15s;
+}
+.icard-btn:hover { color: var(--ink); border-color: rgba(52, 245, 255, 0.5); }
+.icard-big {
+  font-family: var(--display); font-weight: 900; letter-spacing: -0.04em; line-height: 1;
+  font-size: clamp(26px, 2.6vw, 36px); margin: 10px 0 6px; font-variant-numeric: tabular-nums;
+  background: linear-gradient(95deg, var(--cyan), var(--violet) 50%, var(--pink));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  overflow-wrap: anywhere;
+}
+.icard-t { margin: 0 0 4px; font-size: 14px; font-weight: 700; color: var(--ink); }
+.icard-b { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--muted); }
+@media (max-width: 900px) {
+  .fact { display: none; }
+  .icard-big { font-size: 26px; }
 }

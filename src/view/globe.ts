@@ -39,6 +39,7 @@ export class GlobeView {
   mode: Mode = 'hero';
   model?: Model;
   onPick?: (agg: PlaceAgg) => void;
+  onHover?: (agg: PlaceAgg | null) => void;
   private heat = new Map<string, number>();
   private focusCc?: string;
   private points = new Map<string, PointD>();
@@ -74,7 +75,10 @@ export class GlobeView {
       .pointsTransitionDuration(900)
       .pointLabel((d: any) => this.tooltip(d as PointD))
       .onPointClick((d: any) => this.mode === 'result' && this.onPick?.((d as PointD).agg))
-      .onPointHover((d: any) => (el.style.cursor = d && this.mode === 'result' ? 'pointer' : 'grab'))
+      .onPointHover((d: any) => {
+        el.style.cursor = d && this.mode === 'result' ? 'pointer' : 'grab';
+        this.onHover?.(d ? (d as PointD).agg : null);
+      })
       // arcs to HQ
       .arcsData([])
       .arcColor(() => ['rgba(52,245,255,0.05)', 'rgba(52,245,255,0.75)', 'rgba(255,62,165,0.95)'])

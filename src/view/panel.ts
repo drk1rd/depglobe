@@ -62,6 +62,7 @@ export function renderHeadline(m: Model) {
     r.mode === 'open' ? 'open data via ecosyste.ms' : '',
   ].filter(Boolean);
   $('#r-meta').innerHTML = bits.join(' · ');
+  renderFact(m);
 }
 
 export function renderStrip(m: Model) {
@@ -81,11 +82,31 @@ export function renderTab(tab: Tab, m: Model, hooks: PanelHooks) {
   const body = $('#tab-body');
   document.querySelectorAll<HTMLButtonElement>('.tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
   if (tab === 'countries') body.innerHTML = countries(m);
+  else if (tab === 'story') body.innerHTML = story(m);
   else if (tab === 'risk') body.innerHTML = risk(m);
   else body.innerHTML = packages(m);
   body.scrollTop = 0;
 
   body.querySelectorAll<HTMLElement>('[data-cc]').forEach((el) => el.addEventListener('click', () => hooks.onCountry(el.dataset.cc!)));
+  body.querySelectorAll<HTMLElement>('[data-copy-card]').forEach((el) =>
+    el.addEventListener('click', async () => {
+      const ins = lastInsights[Number(el.dataset.copyCard)];
+      if (!ins) return;
+      const text = `${ins.emoji} ${ins.title} — ${ins.body}\n${location.href}`;
+      try {
+        await navigator.clipboard.writeText(text);
+        toast('Copied ✓');
+      } catch {
+        toast(text);
+      }
+    }),
+  );
+  body.querySelectorAll<HTMLElement>('[data-share-card]').forEach((el) =>
+    el.addEventListener('click', () => {
+      const ins = lastInsights[Number(el.dataset.shareCard)];
+      if (ins) document.dispatchEvent(new CustomEvent('depglobe:share-insight', { detail: ins }));
+    }),
+  );
   body.querySelectorAll<HTMLElement>('[data-open-token]').forEach((el) => el.addEventListener('click', hooks.onNeedToken));
   const search = body.querySelector<HTMLInputElement>('.search');
   if (search) {
@@ -115,6 +136,27 @@ function countries(m: Model): string {
     <div class="crow unknown-row"><span class="rk">·</span><span class="fl">🌫</span>
       <span class="nm">Unknown<span class="sub2">no location on GitHub</span></span><span class="pc">${unk}%</span></div>
     <p class="ethics">Share = fraction of dependency packages, split across each package's located maintainers. Location is self-reported free text.</p>`;
+}
+
+function story(m: Model): string {
+  lastInsights = buildInsights(m);
+  if (!lastInsights.length) return `<p class="ethics">Not enough located data to tell a story yet.</p>`;
+  const cards = lastInsights
+    .map(
+      (ins, i) => `<div class="icard k-${ins.kind}" style="--i:${i}">
+        <div class="icard-top"><span class="icard-e">${ins.emoji}</span>
+          <span class="icard-acts">
+            <button type="button" class="icard-btn" data-copy-card="${i}" title="Copy as text">📋 Copy</button>
+            <button type="button" class="icard-btn" data-share-card="${i}" title="Share this card" aria-label="Share this card">⤴</button>
+          </span></div>
+        ${ins.big ? `<div class="icard-big">${esc(ins.big)}</div>` : ''}
+        <h4 class="icard-t">${esc(ins.title)}</h4>
+        <p class="icard-b">${esc(ins.body)}</p>
+      </div>`,
+    )
+    .join('');
+  return `<div class="story">${cards}</div>
+    <p class="ethics">Facts are computed from self-reported GitHub locations and describe <b>packages</b>, never people. Concentration, not suspicion.</p>`;
 }
 
 function list(items: RiskItem[], max = 8): string {

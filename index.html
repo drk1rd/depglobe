@@ -96,6 +96,7 @@
       <div class="actions">
         <button type="button" class="btn hot" id="share-btn">⚡ Share</button>
         <button type="button" class="btn" id="tour-btn">▶ Fly tour</button>
+        <button type="button" class="btn" id="poster-btn" title="Hide the UI for a clean screenshot (P)">🖼 Poster</button>
         <button type="button" class="btn" id="new-btn">＋ New repo</button>
       </div>
 
@@ -103,6 +104,7 @@
         <button class="sheet-handle" id="sheet-handle" type="button" aria-label="Expand panel"></button>
         <div class="tabs" role="tablist">
           <button role="tab" data-tab="countries" aria-selected="true">Countries</button>
+          <button role="tab" data-tab="story">✨ Story</button>
           <button role="tab" data-tab="risk">Risk</button>
           <button role="tab" data-tab="packages">Packages</button>
         </div>
@@ -113,6 +115,7 @@
     </section>
 
     <div class="tour-caption" id="tour-caption" aria-live="polite"></div>
+    <button type="button" class="poster-exit" id="poster-exit" aria-label="Exit poster mode">✕ exit poster</button>
     <div class="toast" id="toast" role="status"></div>
 
     <dialog id="token-dlg" class="dlg">

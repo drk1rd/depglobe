@@ -369,6 +369,24 @@ $('#tab-body').addEventListener('mouseover', (e) => {
   globe.highlightCountry(row?.dataset.cc);
 });
 $('#tab-body').addEventListener('mouseleave', () => globe.highlightCountry(undefined));
+globe.onHover = (agg) => {
+  document.querySelectorAll<HTMLElement>('#tab-body .crow.lit').forEach((r) => r.classList.remove('lit'));
+  if (!agg) return;
+  const row = document.querySelector<HTMLElement>(`#tab-body [data-cc="${agg.place.cc}"]`);
+  if (row) {
+    row.classList.add('lit');
+    row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+};
+
+// ---------- poster mode: hide all chrome for screenshots / screen recordings ----------
+function setPoster(on: boolean) {
+  document.body.classList.toggle('poster', on);
+  $('#poster-btn').classList.toggle('on', on);
+  if (on) toast('Poster mode — press P or Esc to exit', 'info', 2500);
+}
+$('#poster-btn').addEventListener('click', () => setPoster(!document.body.classList.contains('poster')));
+$('#poster-exit').addEventListener('click', () => setPoster(false));
 
 // ---------- tour ----------
 let tourId = 0;
@@ -522,7 +540,11 @@ addEventListener('keydown', (e) => {
     e.preventDefault();
     ($('#repo') as HTMLInputElement).focus();
   }
-  if (e.key === 'Escape') stopTour();
+  if (e.key === 'Escape') {
+    stopTour();
+    setPoster(false);
+  }
+  if ((e.key === 'p' || e.key === 'P') && !typing && document.body.dataset.mode === 'result') setPoster(!document.body.classList.contains('poster'));
 });
 addEventListener('paste', (e) => {
   if (document.body.dataset.mode !== 'hero' || (e.target as HTMLElement)?.matches?.('input')) return;
