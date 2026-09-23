@@ -3,7 +3,7 @@ import { $, countUp, esc, fmt } from './fx';
 
 export type Tab = 'countries' | 'risk' | 'packages';
 
-const STACK_COLORS = ['#ff3ea5', '#8a5cff', '#34f5ff', '#c6ff3d', '#ffb13d', '#546092'];
+const STACK_COLORS = ['#ff3ea5', '#b04fd6', '#8a5cff', '#5fa8ff', '#34f5ff', '#3a4270'];
 const repoLink = (repo?: string) => (repo ? `https://github.com/${repo}` : '#');
 
 export interface PanelHooks {

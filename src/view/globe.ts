@@ -24,6 +24,16 @@ const COUNTRY_FEATURES = ((feature(topo as any, (topo as any).objects.countries)
       : f,
   );
 
+// cyan → violet → pink by importance, matching the brand gradient
+const PILLAR = [[52, 245, 255], [138, 92, 255], [255, 62, 165]];
+export function pillarColor(k: number): string {
+  const t = Math.max(0, Math.min(1, k)) * 2;
+  const i = Math.min(1, Math.floor(t));
+  const f = t - i;
+  const c = PILLAR[i].map((v, j) => Math.round(v + (PILLAR[i + 1][j] - v) * f));
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+
 export class GlobeView {
   g: GlobeInstance;
   mode: Mode = 'hero';
@@ -191,9 +201,9 @@ export class GlobeView {
       d.agg = agg;
       d.alt = 0.012 + 0.32 * k;
       d.r = 0.28 + 0.55 * k;
-      d.color = k > 0.66 ? '#ff3ea5' : k > 0.33 ? '#c6ff3d' : '#34f5ff';
+      d.color = pillarColor(k);
       seen.add(d.id);
-      if (isNew && opts.ping) this.ping(d.lat, d.lng, 'rgba(198,255,61,$)', 2.2);
+      if (isNew && opts.ping) this.ping(d.lat, d.lng, 'rgba(52,245,255,$)', 2.2);
     }
     for (const id of this.points.keys()) if (!seen.has(id)) this.points.delete(id);
     this.g.pointsData([...this.points.values()]);
@@ -299,24 +309,26 @@ export class GlobeView {
     (this.g.controls() as any).autoRotate = true;
   }
 
-  /** Square crop of the globe for the share card. */
-  async snapshot(): Promise<{ img: HTMLImageElement; cx: number; cy: number; r: number }> {
+  /** Where the globe sits on the WebGL canvas right now, in canvas pixels. */
+  frameGeometry(): { canvas: HTMLCanvasElement; cx: number; cy: number; r: number } {
     const canvas = this.g.renderer().domElement;
     const off = this.g.globeOffset();
     const cam = this.g.camera() as any;
     const alt = this.g.pointOfView().altitude;
-    const d = 100 * (1 + alt); // camera distance in globe radii units (radius = 100)
+    const d = 100 * (1 + alt);
     const fov = (cam.fov * Math.PI) / 180;
     const rCss = (innerHeight / 2) * (Math.tan(Math.asin(100 / d)) / Math.tan(fov / 2));
     const scale = canvas.width / innerWidth;
+    return { canvas, cx: (innerWidth / 2 + off[0]) * scale, cy: (innerHeight / 2 + off[1]) * scale, r: rCss * scale * 1.06 };
+  }
+
+  /** Square crop of the globe for the share card. */
+  async snapshot(): Promise<{ img: HTMLImageElement; cx: number; cy: number; r: number }> {
+    const { canvas, cx, cy, r } = this.frameGeometry();
     const img = new Image();
     img.src = canvas.toDataURL('image/png');
     await img.decode();
-    return {
-      img,
-      cx: (innerWidth / 2 + off[0]) * scale,
-      cy: (innerHeight / 2 + off[1]) * scale,
-      r: rCss * scale * 1.06,
-    };
+    return { img, cx, cy, r };
   }
+
 }
