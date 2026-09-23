@@ -4,7 +4,7 @@
 
 A spinning 3D globe of every human and org behind a repo's dependencies — any language — with a risk layer for companies and share exports built to be posted.
 
-**Live: https://depglobe.pages.dev/** · no token needed · 360+ popular repos load instantly
+**Live: https://depglobe.suryansh.one/** · no token needed · 360+ popular repos load instantly
 
 ![depglobe](public/og.jpg)
 
