@@ -32,9 +32,22 @@ export async function mapRepo(input: string, opts: RunOptions = {}): Promise<Res
   try {
     sbomPackages = (await fetchSbom(owner, repo, token)).packages;
   } catch (e) {
-    if (token || !(e instanceof SbomError) || (e.status !== 403 && e.status !== 429)) throw e;
-    onProgress({ stage: 'sbom', message: 'GitHub anonymous limit hit → reading manifests via ecosyste.ms (direct deps)' });
-    sbomPackages = await fetchManifestPackages(owner, repo);
+    if (!(e instanceof SbomError)) throw e;
+    const rateLimited = !token && (e.status === 403 || e.status === 429);
+    // 404 also covers "repo exists but GitHub hasn't built its dependency graph" (e.g. just made public).
+    if (!rateLimited && e.status !== 404) throw e;
+    onProgress({
+      stage: 'sbom',
+      message: rateLimited
+        ? 'GitHub anonymous limit hit → reading manifests via ecosyste.ms (direct deps)'
+        : 'No GitHub dependency graph → reading manifests via ecosyste.ms (direct deps)',
+    });
+    try {
+      sbomPackages = await fetchManifestPackages(owner, repo);
+    } catch {
+      throw e;
+    }
+    if (!sbomPackages.length) throw e;
   }
   const all = sbomPackages.sort((a, b) => Number(b.direct) - Number(a.direct));
   const packages = all.slice(0, cap);
