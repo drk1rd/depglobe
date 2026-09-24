@@ -72,7 +72,7 @@ export function renderStrip(m: Model) {
     <div class="stat pp"><b data-n="${s.people}">0</b><span>humans</span></div>
     <div class="stat ct"><b data-n="${s.countries}">0</b><span>countries</span></div>
     <div class="stat"><b data-n="${s.orgs}">0</b><span>orgs</span></div>
-    <div class="stat uk"><b data-n="${s.unknownPct}" data-suffix="%">0</b><span>🌫 unplaced</span></div>`;
+    <div class="stat uk"><b data-n="${s.unknownPct}" data-suffix="%">0</b><span>unplaced</span></div>`;
   $('#strip')
     .querySelectorAll<HTMLElement>('b[data-n]')
     .forEach((b, i) => setTimeout(() => countUp(b, Number(b.dataset.n), 1400, b.dataset.suffix ?? ''), i * 90));

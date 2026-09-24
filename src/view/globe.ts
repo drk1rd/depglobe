@@ -24,7 +24,7 @@ const COUNTRY_FEATURES = ((feature(topo as any, (topo as any).objects.countries)
       : f,
   );
 
-// cyan → violet → pink by importance, matching the brand gradient
+// dim ember → orange → hot white by importance, matching the country heat
 const PILLAR = [[122, 58, 20], [255, 77, 0], [255, 241, 234]];
 export function pillarColor(k: number): string {
   const t = Math.max(0, Math.min(1, k)) * 2;
@@ -123,6 +123,7 @@ export class GlobeView {
       this.layout();
     });
     setInterval(() => this.pruneRings(), 500);
+    setInterval(() => this.hideOccludedPins(), 200);
     this.layout(false);
   }
 
@@ -289,6 +290,19 @@ export class GlobeView {
     this.g.ringsData([...this.rings]);
   }
 
+  /** Fade out globe labels while they sit under text or panels, so nothing reads jumbled. */
+  private hideOccludedPins() {
+    if (!this.pins.size || this.mode !== 'result') return;
+    const blockers = [...document.querySelectorAll<HTMLElement>(
+      '.headline > *, .actions, .panel, .strip, .topbar > *, .tour-caption.show',
+    )].map((el) => el.getBoundingClientRect()).filter((r) => r.width && r.height);
+    for (const { el } of this.pins.values()) {
+      const r = el.getBoundingClientRect();
+      const hit = blockers.some((b) => r.left < b.right && b.left < r.right && r.top < b.bottom && b.top < r.bottom);
+      el.classList.toggle('occluded', hit);
+    }
+  }
+
   private pruneRings() {
     const now = Date.now();
     const before = this.rings.length;
@@ -309,14 +323,8 @@ export class GlobeView {
       p.el.innerHTML = html;
       pins.push(p);
     };
+    // Only the HQ gets a label: extra city labels kept landing on the headline text.
     if (model.hq) mk(`hq:${model.hq.id}`, model.hq.lat, model.hq.lng, `⌂ HQ · ${esc(model.hq.label.split(',')[0])}`, '');
-    const taken = model.hq ? [model.hq] : [];
-    for (const agg of model.places.slice(0, 4)) {
-      if (pins.length >= 3) break;
-      if (taken.some((t) => Math.hypot(t.lat - agg.place.lat, t.lng - agg.place.lng) < 12)) continue;
-      taken.push(agg.place);
-      mk(`top:${agg.place.id}`, agg.place.lat, agg.place.lng, `${agg.place.flag} ${esc(agg.place.label.split(',')[0])} · ${agg.people.size}`, 'top');
-    }
     this.g.htmlElementsData(pins);
   }
 
