@@ -3,3 +3,6 @@ dist
 .DS_Store
 *.local
 .claude/
+
+# private launch notes
+LAUNCH.md
