@@ -4,7 +4,7 @@
 
 A spinning 3D globe of every human and org behind a repo's dependencies — any language — with a risk layer for companies and share exports built to be posted.
 
-**Live: https://depglobe.suryansh.one/** · no token needed · 360+ popular repos load instantly
+**Live: https://depglobe.pages.dev/** · no token needed · 360+ popular repos load instantly
 
 ![depglobe](public/og.jpg)
 
@@ -13,10 +13,10 @@ A spinning 3D globe of every human and org behind a repo's dependencies — any 
 ```
 repo URL
   → GitHub SBOM API            every dependency, every ecosystem, one call
-  → dedupe, cap 400            direct deps first (manifest ranges ≈ direct)
+  → dedupe + cap               direct deps first · 200 packages (no token) / 400 (token)
   → deps.dev                   package → GitHub source repo + OpenSSF Scorecard
   → ecosyste.ms   (no token)   owner + top committers + archived/pushedAt + locations, open data, 5k req/hr per visitor
-    GitHub GraphQL (token)     "turbo": last-60-commit authors, 20 repos per query, 400-package cap
+    GitHub GraphQL (token)     optional "turbo": last-60-commit authors, 20 repos per query
   → offline geocoder           ~9k cities + 250 countries + aliases, flags, US states, CJK names
   → globe.gl                   dot-hex countries lit by share, pillars per place, arcs to HQ
 ```
@@ -43,12 +43,12 @@ npm run dev
 | `npm run dev` | Vite dev server |
 | `npm run build` | Typecheck + production build to `dist/` |
 | `npm run build:places` | Regenerate `src/data/places.json` + `countries.json` from GeoNames / world-countries |
-| `npm run build:demos` | Precompute demo globes into `public/demos/` (needs `GITHUB_TOKEN`) |
+| `npm run build:demos` | Precompute globes into `public/demos/` (needs `GITHUB_TOKEN`) |
 
 Regenerate or add demos:
 
 ```bash
-GITHUB_TOKEN=$(gh auth token) npm run build:demos -- facebook/react pallets/flask
+GITHUB_TOKEN=$(gh auth token) npm run build:demos -- pallets/flask gin-gonic/gin
 ```
 
 Precomputed repos load instantly and replay the scan animation. `?repo=owner/name` deep-links to any repo; add `&live=1` to force a live scan of a precomputed one. To precompute the top-starred repos:
@@ -60,7 +60,7 @@ GITHUB_TOKEN=$(gh auth token) npm run build:demos -- --file top.txt --concurrenc
 ## Risk panel
 
 - 🌐 **Jurisdiction concentration** — share of located dependency weight per country, and how many countries cover half of it
-- 🧍 **Single maintainer** — one human author across the last 60 commits
+- 🧍 **Single maintainer** — only one person behind nearly all commits (without a token: the only committer with ≥5% of all-time commits; with a token: sole human author of the last 60 commits)
 - 🪦 **Abandoned** — archived, or no push in 2+ years
 - 🛡 **Low OpenSSF Scorecard** — below 4/10
 
@@ -68,7 +68,13 @@ Flags describe **packages, never people**. Location is self-reported free text, 
 
 ## Deploy
 
-Static build, relative paths, no backend. On **Cloudflare Pages**: connect the repo, build command `npm run build`, output directory `dist`, Node 22. Then set the absolute `og:image` / `og:url` / `twitter:image` URLs in `index.html` to your domain (link previews need absolute URLs).
+Static build, relative paths, no backend. Hosted on **Cloudflare Pages** at `depglobe.pages.dev`:
+
+1. Cloudflare dashboard → Workers & Pages → Create → Pages → connect `drk1rd/depglobe`
+2. Project name **`depglobe`** (this becomes the `depglobe.pages.dev` subdomain)
+3. Framework preset: none · build command `npm run build` · output directory `dist` · env var `NODE_VERSION=22`
+
+Every push to `main` redeploys. If you host it anywhere else, update the absolute `og:image` / `og:url` / `twitter:image` URLs in `index.html` (link previews need absolute URLs).
 
 ## Data & credits
 
