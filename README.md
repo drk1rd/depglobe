@@ -85,3 +85,7 @@ GitHub dependency-graph SBOM + GraphQL APIs · [deps.dev](https://deps.dev) (Ope
 - **v2 — Metro view:** a second tab that renders the repo's *internal* architecture as a subway map (modules → stations, import chains → lines). Globe = where your code comes from; Metro = how it's wired.
 - `npx depglobe <url>` CLI reusing `src/pipeline`
 - Per-repo OG images via a small edge function
+
+## License
+
+[MIT](LICENSE) © Suryansh Prajapati ([drk1rd](https://suryansh.one))

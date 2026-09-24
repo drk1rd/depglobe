@@ -2,6 +2,14 @@
   "name": "depglobe",
   "private": true,
   "version": "0.1.0",
+  "description": "Paste any GitHub repo and see the humans and countries behind its dependencies on a 3D globe.",
+  "license": "MIT",
+  "author": "drk1rd (https://suryansh.one)",
+  "homepage": "https://depglobe.pages.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/drk1rd/depglobe.git"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
