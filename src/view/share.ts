@@ -127,21 +127,28 @@ function fit(x: Ctx, text: string, font: (px: number) => string, px: number, max
   return p;
 }
 
-/** "dep" (light) + "globe" (gradient). Returns total width. */
+/** "dep" (ink) + "globe" (accent) + a small "by drk1rd" credit. Returns total width. */
+const CREDIT = 'by drk1rd';
 function paintBrand(x: Ctx, left: number, y: number, size: number, align: 'left' | 'center' = 'left') {
   x.font = `400 ${size}px Anton`;
   const dw = x.measureText('dep').width;
-  x.font = `400 ${size}px Anton`;
   const gw = x.measureText('globe').width;
-  const L = align === 'center' ? left - (dw + gw) / 2 : left;
+  const gap = size * 0.6;
+  const creditPx = Math.round(size * 0.55);
+  x.font = `600 ${creditPx}px "JetBrains Mono"`;
+  const cw = x.measureText(CREDIT).width;
+  const total = dw + gw + gap + cw;
+  const L = align === 'center' ? left - total / 2 : left;
   x.textAlign = 'left';
   x.font = `400 ${size}px Anton`;
   x.fillStyle = INK;
   x.fillText('dep', L, y);
-  x.font = `400 ${size}px Anton`;
-  x.fillStyle = brandGrad(x, L + dw, L + dw + gw);
+  x.fillStyle = CYAN;
   x.fillText('globe', L + dw, y);
-  return dw + gw;
+  x.font = `600 ${creditPx}px "JetBrains Mono"`;
+  x.fillStyle = MUTED;
+  x.fillText(CREDIT, L + dw + gw + gap, y);
+  return total;
 }
 
 /** "humans in N countries" with N in pink. */

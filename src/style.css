@@ -108,6 +108,8 @@ body:not([data-mode='hero']) .vignette { opacity: 0.3; }
   color: var(--muted); text-decoration: none !important; transition: color 0.15s, border-color 0.15s;
 }
 .ghost:hover { color: var(--ink); border-color: var(--ink); }
+.ghost.by b { color: var(--ink); font-weight: 600; }
+.ghost.by:hover b { color: var(--acc); }
 .tok-dot { width: 6px; height: 6px; background: var(--dim); }
 .has-token .tok-dot { background: var(--acc); }
 
@@ -385,6 +387,13 @@ body.poster .brand { opacity: 0.9; }
   font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); transition: opacity 0.3s;
 }
 body.poster .poster-exit { opacity: 0.6; pointer-events: auto; }
+.sig {
+  position: fixed; z-index: 40; left: clamp(16px, 3vw, 36px); bottom: 20px; opacity: 0; pointer-events: none;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+  text-decoration: none !important; transition: opacity 0.3s;
+}
+.sig b { color: var(--acc); font-weight: 600; }
+body.poster .sig { opacity: 1; pointer-events: auto; }
 body.poster .poster-exit:hover { opacity: 1; color: var(--ink); }
 .toast {
   position: fixed; z-index: 50; left: 50%; top: 20px; transform: translate(-50%, -140%); opacity: 0; visibility: hidden;
@@ -424,6 +433,12 @@ body.poster .poster-exit:hover { opacity: 1; color: var(--ink); }
   body[data-mode='hero'] #globe { opacity: 0.5; }
   .hero { left: 16px; top: auto; bottom: 54px; display: block; }
   .hero .kicker, .hero .fine { display: none; }
+  .topbar { padding: 14px 16px; }
+  .brand { font-size: 18px; gap: 8px; }
+  .brand svg { width: 20px; height: 20px; }
+  .topbar nav { gap: 4px; }
+  .topbar .ghost { padding: 6px 8px; font-size: 10px; letter-spacing: 0.06em; }
+  .sig { font-size: 10px; letter-spacing: 0.06em; }
   .hero h1 { font-size: clamp(48px, 15vw, 76px); }
   .showcase { display: none; }
   .demos .chip:nth-child(n + 7) { display: none; }
