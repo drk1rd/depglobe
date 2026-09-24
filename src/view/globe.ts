@@ -360,11 +360,14 @@ export class GlobeView {
   }
 
   /** Square crop of the globe for the share card. */
-  async snapshot(): Promise<{ img: HTMLImageElement; cx: number; cy: number; r: number }> {
+  async snapshot(): Promise<{ img: HTMLCanvasElement; cx: number; cy: number; r: number }> {
     const { canvas, cx, cy, r } = this.frameGeometry();
-    const img = new Image();
-    img.src = canvas.toDataURL('image/png');
-    await img.decode();
+    // Render now and copy synchronously: rAF (and Image.decode) stall in background tabs.
+    this.g.renderer().render(this.g.scene(), this.g.camera());
+    const img = document.createElement('canvas');
+    img.width = canvas.width;
+    img.height = canvas.height;
+    img.getContext('2d')!.drawImage(canvas, 0, 0);
     return { img, cx, cy, r };
   }
 
