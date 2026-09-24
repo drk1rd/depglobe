@@ -466,6 +466,10 @@ body.poster .poster-exit:hover { opacity: 1; color: var(--ink); }
   .hero .kicker { display: none; }
   .hero .fine br, .hero .fine .eco-list { display: none; }
 }
+@media (max-width: 360px) {
+  #token-label { display: none; }
+  .brand svg { display: none; }
+}
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001s !important; animation-iteration-count: 1 !important; }
 }
